@@ -1,6 +1,8 @@
 - Generally make the code more efficient
-- Support deponents
+- Support deponents and semideponents
 - Make the code work with & output Unicode characters instead of LaTeX escapes
   (but support both as input) ?
 - Add plain text output?
 - Support outputting complete paradigms
+- Add documentation
+- Add an option for setting the outfile

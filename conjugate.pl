@@ -1,10 +1,9 @@
 #!/usr/bin/perl -w
 # This script creates a synopsis of a Latin verb as a LaTeX document.
+# Usage: conjugate.pl [123][sp] principal parts
 use strict;
 
 sub append($$;$);
-
-my($base, $vowel, $vowel2, $stemTwo, $stemThree, $conj, $trans, $first, $subj, $person, $personal, $passive, $perfect, $sum, $adj);
 
 my $word = qr/[[:alpha:]\\={}]+/;
 my $long = qr/\\=\{?\\?([aeio])\{?\}?/i;
@@ -26,80 +25,61 @@ my %short = ('\\=o'      => 1,
 	     'or'        => 1,
 	     'te'        => 0);
 
-print <<EOT;
-Enter the four principal parts of the verb you wish to conjugate,
-separated by spaces, with macrons denoted LaTeX-style:
-Enter `quit' to exit.
+my %persons = (
+ '1s' => ['first person, singular',  0, '\\=o', 'r',         '\\=\\i',    'sum',   'us/a/um'],
+ '2s' => ['second person, singular', 1, 's',    'ris/re',    'ist\\=\\i', 'es',    'us/a/um'],
+ '3s' => ['third person, singular',  2, 't',    'tur',       'it',        'est',   'us/a/um'],
+ '1p' => ['first person, plural',    3, 'mus',  'mur',       'imus',      'sumus', '\\=\\i/ae/a'],
+ '2p' => ['second person, plural',   4, 'tis',  'min\\=\\i', 'istis',     'estis', '\\=\\i/ae/a'],
+ '3p' => ['third person, plural',    5, 'nt',   'ntur',      '\\=erunt',  'sunt',  '\\=\\i/ae/a']
+);
+
+if (@ARGV < 2 || !exists $persons{$ARGV[0]}) {
+ print STDERR <<EOT;
+Usage: $0 person&number principal parts ...
+Valid persons & numbers:
+	1s	1p
+	2s	2p
+	3s	3p
 EOT
-
-print '> ';
-while (<STDIN>) {
- if (/^(($word)([ie]?)\\=o),?\s+\2(e|$long)re,?\s+($word)\\=\{?\\i\{?\}?,?\s+($word)us$/io) { # (\\=ur|\\=\{u\}r)?
-  ($first, $base, $vowel, $stemTwo, $stemThree) = ($1, $2, $4, $6, $7);
-  $trans = !($stemThree =~ s/(\\=ur|\\=\{u\}r)$//i);
-  if ($vowel =~ /^\\=\{?a\}?$/i) {
-   $conj = 1;
-   $subj = '\\=e';
-   $vowel2 = '\\=a';
-  } elsif ($vowel =~ /^\\=\{?e\}?$/i) {
-   $conj = 2;
-   $subj = 'e\\=a';
-   $vowel2 = '\\=e';
-  } elsif ($vowel =~ /^e$/i) {
-   ($conj, $subj, $vowel2) = $3 ? (4, 'i\\=a', 'i\\=e') : (3, '\\=a', '\\=e')
-  } elsif ($vowel =~ /^\\=\{?\\i\{?\}?$/i) {
-   $conj = 5;
-   $subj = 'i\\=a';
-   $vowel2 = 'i\\=e';
-  } else { die "An error has occurred in parsing the stem vowel.\n" }
-  last;
- } elsif (/^($word)\\=\{?o\}?$/io) {
-  my $tmp = $1;
-  print 'Is the verb a standard first-conjugation verb? (y/n): ';
-  if (<STDIN> =~ /^y/i) {
-   ($base, $conj, $vowel, $subj, $trans, $stemTwo, $stemThree, $first, $vowel2) = ($tmp, 1, '\\=a', '\\=e', 1, "$tmp\\=av", "$tmp\\=at", "$tmp\\=o", '\\=a');
-   last;
-  } else { print "Enter the four principal parts.\n" }
- } elsif (/^q(uit)?$/i) { exit }
- elsif ($_ eq "`quit'\n") { print "I didn't mean that literally.\n" }
- else { print "Quid?\n" }
- print '> ';
+ exit 2;
 }
 
-print "In what person & number do you wish to conjugate this verb?\n> ";
-my $persno;
-my $p1 = qr/(1(st)?|first)(\s*person)?/i;
-my $p2 = qr/(2(nd)?|second)(\s*person)?/i;
-my $p3 = qr/(3(rd)?|third)(\s*person)?/i;
-my $sing = qr/s(ing(\.|ular)?)?/i;
-my $plural = qr/p(l(\.|ur(\.|al)?)?)?/i;
-while (defined($persno = <STDIN>)) {
- chomp;
- if ($persno =~ /^$p1,?\s*$sing$/io) {
-  ($person, $personal, $passive, $perfect, $sum,  $adj) =
-  (0,       '\\=o',    'r',      '\\=\\i', 'sum', 'us/a/um')
- } elsif ($persno =~ /^$p2,?\s*$sing$/io) {
-  ($person, $personal, $passive, $perfect,    $sum, $adj) =
-  (1,      's',       'ris/re',  'ist\\=\\i', 'es', 'us/a/um')
- } elsif ($persno =~ /^$p3,?\s*$sing$/io) {
-  ($person, $personal, $passive, $perfect, $sum,  $adj) =
-  (2,       't',       'tur',    'it',     'est', 'us/a/um')
- } elsif ($persno =~ /^$p1,?\s*$plural$/io) {
-  ($person, $personal, $passive, $perfect, $sum,    $adj) =
-  (3,       'mus',     'mur',    'imus',   'sumus', '\\=\\i/ae/a')
- } elsif ($persno =~ /^$p2,?\s*$plural$/io) {
-  ($person, $personal, $passive,    $perfect, $sum,    $adj) =
-  (4,       'tis',     'min\\=\\i', 'istis',  'estis', '\\=\\i/ae/a')
- } elsif ($persno =~ /^$p3,?\s*$plural$/io) {
-  ($person, $personal, $passive, $perfect,   $sum,   $adj) =
-  (5,       'nt',      'ntur',   '\\=erunt', 'sunt', '\\=\\i/ae/a')
- } elsif ($persno =~ /^q(uit)?$/i) { exit }
- else {print "Quid?\n> "; next; }
- last;
-}
+my($persno, $person, $personal, $passive, $perfect, $sum, $adj)
+ = @{$persons{shift @ARGV}};
+
+my $parts = join(':', @ARGV);
+my($base, $vowel, $vowel2, $stemTwo, $stemThree, $conj, $trans, $first, $subj);
+if ($parts =~ /^(($word)([ie]?)\\=o)
+	       :\2(e|$long)re
+	       :($word)\\=\{?\\i\{?\}?
+	       :($word)us$/iox) { # (\\=ur|\\=\{u\}r)?
+ ($first, $base, $vowel, $stemTwo, $stemThree) = ($1, $2, $4, $6, $7);
+ $trans = !($stemThree =~ s/(\\=ur|\\=\{u\}r)$//i);
+ if ($vowel =~ /^\\=\{?a\}?$/i) {
+  $conj = 1;
+  $subj = '\\=e';
+  $vowel2 = '\\=a';
+ } elsif ($vowel =~ /^\\=\{?e\}?$/i) {
+  $conj = 2;
+  $subj = 'e\\=a';
+  $vowel2 = '\\=e';
+ } elsif ($vowel =~ /^e$/i) {
+  ($conj, $subj, $vowel2) = $3 ? (4, 'i\\=a', 'i\\=e') : (3, '\\=a', '\\=e')
+ } elsif ($vowel =~ /^\\=\{?\\i\{?\}?$/i) {
+  $conj = 5;
+  $subj = 'i\\=a';
+  $vowel2 = 'i\\=e';
+ } else { die "$0: An error has occurred in parsing the stem vowel.\n" }
+} elsif ($parts =~ /^($word)\\=\{?o\}?$/io) {
+ # Assume the verb is a standard first-conjugation verb
+ my $tmp = $1;
+ ($base, $conj, $vowel, $subj, $trans, $stemTwo, $stemThree, $first, $vowel2)
+  = ($tmp, 1, '\\=a', '\\=e', 1, "$tmp\\=av", "$tmp\\=at", "$tmp\\=o", '\\=a');
+} else { die "$0: invalid principal parts" }
 
 (my $filename = $first) =~ tr/\\={}//d;
-open my $file, '>', "$filename.tex";
+open my $file, '>', "$filename.tex" or die "$0: $filename.tex: $!";
 select $file;
 
 my $head = $trans ? 'cc} & \textbf{Active} & \textbf{Passive} \\\\ \hline\multicolumn{3' : 'c}\multicolumn{2';
@@ -107,7 +87,7 @@ print <<EOT;
 \\documentclass{article}
 \\begin{document}
 \\title{Synopsis of \\emph{$first}, $persno}
-\\author{\\texttt{conjugate.pl}, v.1.1}
+\\author{\\texttt{conjugate.pl}}
 \\maketitle
 \\begin{center}
 \\begin{tabular}{l$head}{c}{\\textbf{Indicative Mood}} \\\\ \\hline
@@ -235,12 +215,6 @@ EOT
 
 print '\\end{tabular}\\end{center}\\end{document}';
 close;
-select STDOUT;
-print "Done!\nThe synopsis has been saved to $filename.tex.\nWould you like to typeset it now? (y/n): ";
-if (<STDIN> =~ /^y/i) {
- system("pdflatex $filename.tex");
- system("open $filename.pdf") unless $?;
-}
 
 sub append($$;$) {
  my($pre, $post, $opt) = @_;
@@ -265,3 +239,5 @@ sub append($$;$) {
  }
  print $pre, $post;
 }
+
+# vim:set nowrap:
