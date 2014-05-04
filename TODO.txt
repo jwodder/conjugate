@@ -1,0 +1,6 @@
+- Generally make the code more efficient
+- Support deponents
+- Make the code work with & output Unicode characters instead of LaTeX escapes
+  (but support both as input) ?
+- Add plain text output?
+- Support outputting complete paradigms

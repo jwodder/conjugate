@@ -1,12 +1,5 @@
 #!/usr/bin/perl -w
-# This script will create a synopsis of a Latin verb and output it as a LaTeX
-# document.
-# TO DO:
-#  - Generally make the code more efficient and support deponents
-#  - Make the code work with & output Unicode characters instead of LaTeX
-#    escapes (but support both as input) ?
-#  - Add plain text output?
-#  - Support outputting complete paradigms
+# This script creates a synopsis of a Latin verb as a LaTeX document.
 use strict;
 
 sub append($$;$);
