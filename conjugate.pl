@@ -36,7 +36,7 @@ my %persons = (
 
 if (@ARGV < 2 || !exists $persons{$ARGV[0]}) {
  print STDERR <<EOT;
-Usage: $0 person&number principal parts ...
+Usage: $0 person&number principal parts
 Valid persons & numbers:
 	1s	1p
 	2s	2p
